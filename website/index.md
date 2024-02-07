@@ -31,9 +31,11 @@ graph LR
 ```
 
 ## Footnotes
+
 Lorem ipsum[^1] dolor sit amet, consectetur adipiscing elit.
 
 ## Image
+
 ![Image title](https://dummyimage.com/600x400/eee/aaa){ align=left }
 
 [^1]: Lorem ipsum dolor sit amet, consectetur adipiscing elit.
