@@ -3,7 +3,7 @@
 ### 什麼是 Generators?
 
 Generators (生成器) 是 ES6 引入的另一個新功能
-Generators 像是一個可以隨時暫停 (pause) 和繼續 (resume) 執行的特殊函數，其實它本身也是一個 Iterator 物件
+Generators 像是一個可以隨時暫停和繼續執行的特殊函數，其實它本身也是一個 Iterator 物件
 
 !!! tip
 
@@ -174,37 +174,43 @@ for (let n of str()) {
 
 ##### 非同步的操作管理:
 
-當需要按照順序執行非同步任務時，可以待配 Promise 使用，使 generator 函數先暫停，等待非同步任務完成後再繼續執行。
+當需要按照順序執行非同步任務時，可以待配 Promise 使用，使 generator 函數先暫停，等待非同步任務完成後(也就是 Promise resolve 後)再繼續執行。
 
 ```ts
-function* asyncTaskGenerator() {
-  let result1 = yield asyncTask1();
-  console.log(result1);
-  let result2 = yield asyncTask2();
-  console.log(result2);
-}
-
-function asyncTask1() {
+function load(params) {
   return new Promise((resolve) => {
-    setTimeout(() => resolve("Async Task 1 Done"), 1000);
+    setTimeout(() => {
+      resolve("load:" + params);
+    }, 1000);
   });
 }
 
-function asyncTask2() {
-  return new Promise((resolve) => {
-    setTimeout(() => resolve("Async Task 2 Done"), 1000);
-  });
+function* gen(state0) {
+  console.log(state0);
+  let i = 1;
+  let state1 = yield load(i);
+  console.log("state1", state1);
+  let state2 = yield load(i + 1);
+  console.log("state2", state2);
+  let state3 = yield load(i + 2);
+  console.log("state3", state3);
 }
 
-let generator = asyncTaskGenerator();
-generator.next().value.then((result1) => {
-  generator.next(result1).value.then((result2) => {
-    generator.next(result2);
-  });
-});
+function run(generator, value) {
+  let gen = generator.next(value);
+  let promise = gen.value;
 
-//延遲1秒
-//Async Task 1 Done
-//延遲1秒
-//Async Task 2 Done
+  if (!gen.done) {
+    promise.then((res) => {
+      run(generator, res);
+    });
+  }
+}
+run(gen("start"), "");
+//等待1秒
+//state1 load:1
+//等待1秒
+//state2 load:2
+//等待1秒
+//state3 load:3
 ```
